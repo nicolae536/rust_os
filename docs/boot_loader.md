@@ -1,0 +1,1 @@
+We use `bootimage` which prepends a bootloader to our kernel
