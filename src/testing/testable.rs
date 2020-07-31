@@ -1,8 +1,3 @@
-// Needed because otherwise the macro will not work
-#[allow(dead_code)]
-use crate::serial_print;
-use crate::serial_println;
-
 pub trait Testable {
     fn run(&self) -> ();
 }

@@ -3,8 +3,8 @@ use super::color;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 pub struct ScreenCharacter {
-    ascii_character: u8,
-    color_code: color::ColorCode,
+    pub ascii_character: u8,
+    pub color_code: color::ColorCode,
 }
 
 impl ScreenCharacter {

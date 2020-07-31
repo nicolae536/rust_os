@@ -1,8 +1,11 @@
 use core::fmt;
-
 use volatile::Volatile;
+use lazy_static::lazy_static;
+// #[allow(dead_code)]
+// use crate::serial_print;
+// use crate::serial_println;
 
-use super::color;
+use super::color::*;
 use super::screen_character;
 
 pub const BUFFER_HEIGHT: usize = 25;
@@ -15,13 +18,13 @@ struct Buffer {
 
 pub struct Writer {
     column_position: usize,
-    color_code: color::ColorCode,
+    color_code: ColorCode,
     buffer: &'static mut Buffer,
 }
 
 impl Writer {
     pub fn new(column_position: usize,
-               color_code: color::ColorCode) -> Writer {
+               color_code: ColorCode) -> Writer {
         return Writer {
             column_position,
             color_code,
@@ -83,5 +86,21 @@ impl fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write_string(s);
         Ok(())
+    }
+}
+
+lazy_static! {
+    pub static ref WRITER: spin::Mutex<Writer> = spin::Mutex::new(
+        Writer::new(0, ColorCode::new(Color::Yellow, Color::Black))
+    );
+}
+
+#[test_case]
+fn test_println_output() {
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+    for (i,c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_character), c);
     }
 }
