@@ -10,7 +10,8 @@
 
 // Provide a panic handler implementation since the current panic is based on the os
 mod macros;
-
+// Provide testing framework
+mod testing;
 // Vga buffer implementation
 mod vga_buffer;
 // Qemu dependent instructions
@@ -32,12 +33,14 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
+#[cfg(test)]
+use testing::Testable;
 // Provide implementation for the test runner
 #[cfg(test)]
-pub fn test_runner(tests: &[&dyn Fn()]) {
+pub fn test_runner(tests: &[&dyn Testable]) {
     println!("Running {} tests", tests.len());
     for test in tests {
-        test();
+        test.run();
     }
     qemu::exit(qemu::ExitCode::Success);
 }
@@ -45,8 +48,6 @@ pub fn test_runner(tests: &[&dyn Fn()]) {
 // Test the test runner
 #[test_case]
 fn trivial_assertion() {
-    serial_print!("trivial assertion... ");
-    assert_eq!(0, 1);
-    serial_println!("[ok]");
+    assert_eq!(1, 1);
 }
 
