@@ -8,36 +8,20 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rust_os::test_runner)]
 
-
-use core::panic::PanicInfo;
-#[allow(dead_code)]
 use rust_os::println;
 
-// Os Entry point
-#[no_mangle]
+#[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
-
-    #[cfg(test)]
     test_main();
-
     loop {}
 }
 
-// Test the test runner
 #[test_case]
-fn trivial_assertion() {
-    assert_eq!(1, 1);
+fn test_println() {
+    println!("test_println output");
 }
 
-/// This function is called on panic.
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    rust_os::panic_handler(info);
-}
-
-#[cfg(test)]
+use core::panic::PanicInfo;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     rust_os::panic_handler_test(info);

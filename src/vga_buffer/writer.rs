@@ -97,10 +97,10 @@ lazy_static! {
 
 #[test_case]
 fn test_println_output() {
-    let s = "Some test string that fits on a single line";
-    println!("{}", s);
-    for (i,c) in s.chars().enumerate() {
-        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
-        assert_eq!(char::from(screen_char.ascii_character), c);
+    let test_str = "Some test string that fits on a single line";
+    println!("{}", test_str);
+    for (char_index, char) in test_str.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
+        assert_eq!(char::from(screen_char.ascii_character), char);
     }
 }
