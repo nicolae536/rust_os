@@ -6,7 +6,8 @@
 // Override the testing framework runner with crate::test_runner
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
-
+// Enable x86 interrupt calling convention
+#![feature(abi_x86_interrupt)]
 // Provide a panic handler implementation since the current panic is based on the os
 // <editor-fold desc="TODO Find a convenient way to define macros in a separated file"
 use core::fmt;
@@ -99,6 +100,10 @@ pub mod vga_buffer;
 pub mod qemu;
 // Serial Port communication
 pub mod serial_port_com;
+// Interrupts
+pub mod interrupts;
+// Provide kernel init
+pub mod kernel_init;
 // Provide memset, memcpy, memcmp implementation since the os usually provides thos
 extern crate rlibc;
 
@@ -116,6 +121,7 @@ pub fn test_runner(tests: &[&dyn Testable]) {
 #[no_mangle]
 #[cfg(test)]
 pub extern "C" fn _start() -> ! {
+    kernel_init::run();
     test_main();
     loop {}
 }

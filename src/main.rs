@@ -16,7 +16,12 @@ use rust_os::println;
 // Os Entry point
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
+    println!("Starting Rust_Os v:1.0.0");
+
+    rust_os::kernel_init::run();
+
+    // invoke a breakpoint exception
+    x86_64::instructions::interrupts::int3(); // new
 
     #[cfg(test)]
     test_main();
