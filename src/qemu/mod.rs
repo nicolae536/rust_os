@@ -1,7 +1,8 @@
 mod exit_code;
 pub use exit_code::ExitCode;
 
-pub fn  exit(exit_code: ExitCode) {
+#[allow(dead_code)]
+pub fn exit(exit_code: ExitCode) {
     use x86_64::instructions::port::Port;
 
     unsafe {

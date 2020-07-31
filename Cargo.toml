@@ -12,11 +12,17 @@ bootloader = "0.9.8"
 volatile = "0.3.0"
 spin = "0.5.2"
 x86_64 = "0.11.1"
+uart_16550 = "0.2.7"
 
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
 
 [package.metadata.bootimage]
-test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
-test-success-exit-code = 33
+test-args = [
+ # -serial Redirect stdout
+ "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio",
+ # Hode qumu window because we redirect stdout
+ "-display", "none"
+]
+test-success-exit-code = 33         # (0x10 << 1) | 1

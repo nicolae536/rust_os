@@ -9,12 +9,14 @@
 #![test_runner(crate::test_runner)]
 
 // Provide a panic handler implementation since the current panic is based on the os
-mod panic_handler;
+mod macros;
+
 // Vga buffer implementation
 mod vga_buffer;
 // Qemu dependent instructions
 mod qemu;
-
+// Serial Port communication
+mod serial_port_com;
 // Provide memset, memcpy, memcmp implementation since the os usually provides thos
 extern crate rlibc;
 
@@ -43,8 +45,8 @@ pub fn test_runner(tests: &[&dyn Fn()]) {
 // Test the test runner
 #[test_case]
 fn trivial_assertion() {
-    print!("trivial assertion... ");
-    assert_eq!(1, 1);
-    println!("[ok]");
+    serial_print!("trivial assertion... ");
+    assert_eq!(0, 1);
+    serial_println!("[ok]");
 }
 
