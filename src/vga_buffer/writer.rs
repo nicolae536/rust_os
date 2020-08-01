@@ -1,12 +1,18 @@
+use core::borrow::BorrowMut;
+use core::cell::RefCell;
 use core::fmt;
-use volatile::Volatile;
+use core::ops::{Deref, DerefMut};
+
 use lazy_static::lazy_static;
-// #[allow(dead_code)]
-// use crate::serial_print;
-// use crate::serial_println;
+use spin::MutexGuard;
+use volatile::Volatile;
 
 use super::color::*;
 use super::screen_character;
+
+// #[allow(dead_code)]
+// use crate::serial_print;
+// use crate::serial_println;
 
 pub const BUFFER_HEIGHT: usize = 25;
 pub const BUFFER_WIDTH: usize = 80;
@@ -17,6 +23,7 @@ struct Buffer {
 }
 
 pub struct Writer {
+
     column_position: usize,
     color_code: ColorCode,
     buffer: &'static mut Buffer,
@@ -89,6 +96,19 @@ impl fmt::Write for Writer {
     }
 }
 
+// impl fmt::Write for  spin::Mutex<Writer> {}
+
+struct WrappedWriter {
+    value: spin::Mutex<Writer>
+}
+
+impl fmt::Write for WrappedWriter {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.value.lock().write_string(s);
+        Ok(())
+    }
+}
+
 lazy_static! {
     pub static ref WRITER: spin::Mutex<Writer> = spin::Mutex::new(
         Writer::new(0, ColorCode::new(Color::Yellow, Color::Black))
@@ -100,7 +120,7 @@ fn test_println_output() {
     let test_str = "Some test string that fits on a single line";
     println!("{}", test_str);
     for (char_index, char) in test_str.chars().enumerate() {
-        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
+        let screen_char = WRITER.value.lock().buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
         assert_eq!(char::from(screen_char.ascii_character), char);
     }
 }

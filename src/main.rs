@@ -20,8 +20,9 @@ pub extern "C" fn _start() -> ! {
 
     rust_os::kernel_init::run();
 
-    // invoke a breakpoint exception
-    x86_64::instructions::interrupts::int3(); // new
+    // trigger a stack overflow
+    stack_overflow();
+
 
     #[cfg(test)]
     test_main();
@@ -46,4 +47,9 @@ fn panic(info: &PanicInfo) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     rust_os::panic_handler_test(info);
+}
+#[allow(unconditional_recursion)]
+fn stack_overflow() {
+    stack_overflow(); // for each recursion, the return address is pushed
+    volatile::Volatile::new(0).read(); // prevent tail recursion optimizations
 }

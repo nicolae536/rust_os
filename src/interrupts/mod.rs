@@ -1,10 +1,15 @@
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 use lazy_static::lazy_static;
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use super::gdt;
 
 lazy_static! {
     static ref INTERRUPT_DESCRIPTOR_TABLE:InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
         idt.breakpoint.set_handler_fn(breakpoint_handler);
+        unsafe {
+            idt.double_fault.set_handler_fn(double_fault_handler)
+                .set_stack_index(gdt::DOUBLE_FAULT_FIST_INDEX);
+        }
         idt
     };
 }
@@ -21,7 +26,24 @@ extern "x86-interrupt" fn breakpoint_handler(
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
 
+extern "x86-interrupt" fn double_fault_handler(
+    stack_frame: &mut InterruptStackFrame,
+    error_code: u64,
+) -> ! {
+    // TODO ask about this
+    println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+    panic!();
+}
+
 #[test_case]
 fn test_breakpoint_exception() {
     x86_64::instructions::interrupts::int3();
+}
+
+#[test_case]
+fn double_fault_exception() {
+    // trigger a page fault
+    unsafe {
+        *(0xdeadbeef as *mut u64) = 42;
+    };
 }

@@ -9,7 +9,7 @@
 // Enable x86 interrupt calling convention
 #![feature(abi_x86_interrupt)]
 // Provide a panic handler implementation since the current panic is based on the os
-// <editor-fold desc="TODO Find a convenient way to define macros in a separated file"
+// <editor-fold desc="MACROS => TODO Find a convenient way to define macros in a separated file"
 use core::fmt;
 
 // <editor-fold desc="print!, println! => Macros">
@@ -77,7 +77,7 @@ use core::panic::PanicInfo;
 // Panic handler
 #[allow(dead_code)]
 pub fn panic_handler(info: &PanicInfo) -> ! {
-    println!("{}", info);
+    println!("{:?}", info);
     loop {}
 }
 
@@ -104,10 +104,14 @@ pub mod serial_port_com;
 pub mod interrupts;
 // Provide kernel init
 pub mod kernel_init;
+// ?
+pub mod gdt;
 // Provide memset, memcpy, memcmp implementation since the os usually provides thos
 extern crate rlibc;
 
 use testing::Testable;
+use core::ops::Deref;
+
 // Provide implementation for the test runner
 pub fn test_runner(tests: &[&dyn Testable]) {
     println!("Running {} tests", tests.len());
@@ -117,6 +121,12 @@ pub fn test_runner(tests: &[&dyn Testable]) {
     qemu::exit(qemu::ExitCode::Success);
 }
 
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    panic_handler_test(info);
+}
+
 // Entry point for test
 #[no_mangle]
 #[cfg(test)]
@@ -124,10 +134,4 @@ pub extern "C" fn _start() -> ! {
     kernel_init::run();
     test_main();
     loop {}
-}
-
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    panic_handler_test(info);
 }
