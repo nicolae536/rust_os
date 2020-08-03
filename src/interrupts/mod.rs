@@ -30,20 +30,14 @@ extern "x86-interrupt" fn double_fault_handler(
     stack_frame: &mut InterruptStackFrame,
     error_code: u64,
 ) -> ! {
+    // #[cfg(test)]
+    // serial_println!("TEST: Exception caught: {:#?} \n{:#?}", error_code, stack_frame);
     // TODO ask about this
-    println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
-    panic!();
+    // println!();
+    panic!("EXCEPTION: DOUBLE_FAULT CODE: {:#?} \n{:#?}", error_code, stack_frame);
 }
 
 #[test_case]
 fn test_breakpoint_exception() {
     x86_64::instructions::interrupts::int3();
-}
-
-#[test_case]
-fn double_fault_exception() {
-    // trigger a page fault
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
-    };
 }

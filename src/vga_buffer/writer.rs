@@ -1,10 +1,6 @@
-use core::borrow::BorrowMut;
-use core::cell::RefCell;
 use core::fmt;
-use core::ops::{Deref, DerefMut};
 
 use lazy_static::lazy_static;
-use spin::MutexGuard;
 use volatile::Volatile;
 
 use super::color::*;
@@ -120,7 +116,7 @@ fn test_println_output() {
     let test_str = "Some test string that fits on a single line";
     println!("{}", test_str);
     for (char_index, char) in test_str.chars().enumerate() {
-        let screen_char = WRITER.value.lock().buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
         assert_eq!(char::from(screen_char.ascii_character), char);
     }
 }

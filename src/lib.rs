@@ -110,7 +110,6 @@ pub mod gdt;
 extern crate rlibc;
 
 use testing::Testable;
-use core::ops::Deref;
 
 // Provide implementation for the test runner
 pub fn test_runner(tests: &[&dyn Testable]) {
