@@ -20,11 +20,11 @@ pub extern "C" fn _start() -> ! {
 
     rust_os::kernel_init::run();
 
-
     #[cfg(test)]
     test_main();
 
-    loop {}
+    println!("It did not crash!");
+    rust_os::hlt_loop();
 }
 
 // Test the test runner

@@ -1,7 +1,7 @@
-use core::fmt;
-
 use lazy_static::lazy_static;
 use volatile::Volatile;
+
+use core::fmt;
 
 use super::color::*;
 use super::screen_character;
@@ -19,7 +19,6 @@ struct Buffer {
 }
 
 pub struct Writer {
-
     column_position: usize,
     color_code: ColorCode,
     buffer: &'static mut Buffer,
@@ -115,8 +114,17 @@ lazy_static! {
 fn test_println_output() {
     let test_str = "Some test string that fits on a single line";
     println!("{}", test_str);
-    for (char_index, char) in test_str.chars().enumerate() {
-        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
-        assert_eq!(char::from(screen_char.ascii_character), char);
-    }
+
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        let mut writer = WRITER.lock();
+        use core::fmt::Write;
+
+        writeln!(writer, "\n{}", test_str).expect("writeln failed");
+
+        for (char_index, char) in test_str.chars().enumerate() {
+            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][char_index].read();
+            assert_eq!(char::from(screen_char.ascii_character), char);
+        }
+    });
 }

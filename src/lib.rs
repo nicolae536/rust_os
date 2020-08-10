@@ -8,15 +8,31 @@
 #![test_runner(crate::test_runner)]
 // Enable x86 interrupt calling convention
 #![feature(abi_x86_interrupt)]
+
+// Provide memset, memcpy, memcmp implementation since the os usually provides thos
+extern crate rlibc;
+
 // Provide a panic handler implementation since the current panic is based on the os
 // <editor-fold desc="MACROS => TODO Find a convenient way to define macros in a separated file"
 use core::fmt;
+// <editor-fold desc="Implement panic handler dependent on above macros">
+// We need to implement a new panic handler because the rust standard panic
+// handler is dependent on the os
+use core::panic::PanicInfo;
+use testing::Testable;
 
 // <editor-fold desc="print!, println! => Macros">
 #[doc(hidden)]
 pub fn _print_to_vga_buffer(args: fmt::Arguments) {
     use core::fmt::Write;
-    crate::vga_buffer::WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        crate::vga_buffer::WRITER
+            .lock()
+            .write_fmt(args)
+            .unwrap();
+    });
 }
 
 // Provide global
@@ -48,7 +64,14 @@ fn test_println_many() {
 #[doc(hidden)]
 pub fn _print_to_serial_port(args: core::fmt::Arguments) {
     use core::fmt::Write;
-    crate::serial_port_com::HOST.lock().write_fmt(args).expect("Printing to host serial failed");
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        crate::serial_port_com::HOST
+            .lock()
+            .write_fmt(args)
+            .expect("Printing to host serial failed");
+    });
 }
 
 /// Prints to the host through the serial interface.
@@ -69,16 +92,11 @@ macro_rules! serial_println {
 }
 // </editor-fold>
 
-// <editor-fold desc="Implement panic handler dependent on above macros">
-// We need to implement a new panic handler because the rust standard panic
-// handler is dependent on the os
-use core::panic::PanicInfo;
-
 // Panic handler
 #[allow(dead_code)]
 pub fn panic_handler(info: &PanicInfo) -> ! {
     println!("{:?}", info);
-    loop {}
+    hlt_loop();
 }
 
 // Panic handler in test mode
@@ -106,10 +124,6 @@ pub mod interrupts;
 pub mod kernel_init;
 // ?
 pub mod gdt;
-// Provide memset, memcpy, memcmp implementation since the os usually provides thos
-extern crate rlibc;
-
-use testing::Testable;
 
 // Provide implementation for the test runner
 pub fn test_runner(tests: &[&dyn Testable]) {
@@ -132,5 +146,11 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     kernel_init::run();
     test_main();
-    loop {}
+    hlt_loop();
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
 }

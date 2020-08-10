@@ -2,7 +2,8 @@
 
 1. `rustup component add rust-src`
 2. `rustup component add llvm-tools-preview`
-3. `cargo build`
+3. Go to home directory or in other directory in windows and run `cargo install bootimage`
+4. `cargo build`
 
 ### Build
 `cargo build`
