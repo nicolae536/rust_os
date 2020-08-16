@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
 use super::gdt;
 
@@ -8,6 +8,7 @@ mod hw_interrupts;
 mod double_fault;
 mod timer;
 mod keyboard;
+mod page_fault;
 
 lazy_static! {
     static ref INTERRUPT_DESCRIPTOR_TABLE:InterruptDescriptorTable = {
@@ -19,6 +20,7 @@ lazy_static! {
         }
         idt[hw_interrupts::Index::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         idt[hw_interrupts::Index::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
+        idt.page_fault.set_handler_fn(page_fault_handler);
         idt
     };
 }
@@ -65,4 +67,11 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(
 )
 {
     keyboard::handle(_stack_frame);
+}
+
+extern "x86-interrupt" fn page_fault_handler(
+    stack_frame: &mut InterruptStackFrame,
+    error_code: PageFaultErrorCode,
+) {
+    page_fault::handle(stack_frame, error_code);
 }
